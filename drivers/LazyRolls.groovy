@@ -68,7 +68,7 @@ def getStatus(args = [position: null, seq: 1]) {
                 newPosition = Math.round((pos.Now.toFloat() / pos.Max.toFloat() * 10000).toFloat()) / 100
                 if (logEnable) log.debug "LazyRolls: Position changed from ${newPosition} to ${args.position}, seq: ${args.seq}"
                 sendEvent(name: "position", value: newPosition)
-                if (newPosition != args.position || args.seq < 5) {
+                if (newPosition != args.position) {
                     // in progress
                     if (newPosition > args.position) {
                         sendEvent(name: "windowShade", value: "closing")
@@ -79,10 +79,15 @@ def getStatus(args = [position: null, seq: 1]) {
                     return
                 } else {
                     // done
-                    if (logEnable) log.debug "Done"
+                    if (logEnable) log.debug "Not moving"
                     if (newPosition == 0) sendEvent(name: "windowShade", value: "open")
                     if (newPosition > 0 && position < 100) sendEvent(name: "windowShade", value: "partially open")
                     if (newPosition == 100) sendEvent(name: "windowShade", value: "closed")
+                    if (args.seq < 5) {
+                        // continue to poll for a few seconds to avoid false stop reading during start
+                        runInMillis(1000, 'getStatus', [data: ["position": newPosition, "seq": args.seq + 1]])
+                        return
+                    }
                     log.info "LazyRolls: Stopped at ${newPosition}"
                 }
             }
