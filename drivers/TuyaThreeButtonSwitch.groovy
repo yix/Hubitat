@@ -39,12 +39,15 @@ def parse(String description) {
     // "catchall: 0104 0006 01 01 0040 00 F463 01 00 0000 FD 00 00"
     // "catchall: 0104 0006 02 01 0040 00 F463 01 00 0000 FD 00 00"
     // "catchall: 0104 0006 03 01 0040 00 F463 01 00 0000 FD 00 00"
+    // read attr - raw: F46301000110210020C82000201E, dni: F463, endpoint: 01, cluster: 0001, size: 10, attrId: 0021, encoding: 20, command: 0A, value: C82000201E
+    // read attr - raw: F46301000110210020C82000201E, dni: F463, endpoint: 01, cluster: 0001, size: 10, attrId: 0021, encoding: 20, command: 0A, value: C82000201E
     Map map = [:]
     if (!description.split(" ")[3].trim().isInteger() || !(description ==~ '^catchall: 0104 0006.*')) {
         return map
     }
     def buttonPressed = Integer.parseInt(description.split(" ")[3].trim(),16)
-    map = parseButtonMessage(buttonPressed, 1)
+    def pressType = Integer.parseInt(description.split(" ")[13].trim(),16)
+    map = parseButtonMessage(buttonPressed, pressType+1)
 	if (map != [:]) {
 		displayDebugLog("Creating event $map")
 		return createEvent(map)
